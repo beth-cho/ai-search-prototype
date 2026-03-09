@@ -10,8 +10,7 @@
         ========================================= */
         body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; display: flex; height: 100vh; background-color: #f5f5f7; overflow: hidden; }
         
-        /* 사이드바 메뉴 */
-        .sidebar { width: 320px; background-color: #ffffff; border-right: 1px solid #e5e5ea; padding: 30px 20px; display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar { width: 320px; background-color: #ffffff; border-right: 1px solid #e5e5ea; padding: 30px 20px; display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05); overflow-y: auto; }
         .sidebar h1 { font-size: 20px; color: #1d1d1f; margin-bottom: 8px; }
         .sidebar p { font-size: 14px; color: #86868b; margin-bottom: 30px; line-height: 1.5; }
         
@@ -22,10 +21,8 @@
         .nav-btn.active .title { color: #1a73e8; }
         .nav-btn .desc { font-size: 13px; color: #86868b; }
         
-        /* 메인 화면 영역 */
         .viewer-container { flex: 1; display: flex; justify-content: center; align-items: center; background-color: #e0e0e0; position: relative; }
         
-        /* 화면 전환용 클래스 */
         .proto-view { display: none; }
         .proto-view.active { display: flex; }
 
@@ -41,10 +38,26 @@
         
         .tabs { display: flex; padding: 0 20px; margin-top: 10px; border-bottom: 1px solid #eee; overflow-x: auto; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
-        .tab { padding: 12px 16px; font-size: 15px; font-weight: 600; color: #a0a0a0; cursor: pointer; white-space: nowrap; position: relative; }
+        .tab { padding: 14px 16px; font-size: 15px; font-weight: 600; color: #a0a0a0; cursor: pointer; white-space: nowrap; position: relative; }
         .tab.active { color: #000; border-bottom: 2px solid #000; }
 
-        /* 토글 관련 CSS */
+        .message-section { flex: 1; overflow-y: auto; padding: 10px 20px; }
+        .message-count { font-size: 14px; font-weight: 700; margin-bottom: 16px; margin-top: 10px;}
+        .message-item { display: flex; gap: 12px; margin-bottom: 20px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
+        .message-content { flex: 1; }
+        .message-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .name { font-weight: 600; font-size: 15px; color: #111; }
+        .date { font-size: 12px; color: #888; }
+        .text { font-size: 14px; color: #555; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        
+        .highlight-exact { color: #00c853; font-weight: bold; }
+        .highlight-ai { color: #9c27b0; font-weight: bold; }
+
+        /* =========================================
+           3. 개별 특화 CSS (토글, 칩, 카드, 키보드)
+        ========================================= */
+        /* Ver 1, 4 공통 (큰 토글) */
         .ai-toggle-bar, .ai-toggle-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; transition: background-color 0.3s ease; }
         .ai-toggle-wrapper { flex-direction: column; align-items: stretch; border-bottom: 1px solid transparent; }
         .ai-toggle-header { display: flex; justify-content: space-between; align-items: center; }
@@ -55,42 +68,47 @@
         .toggle-switch.on { background-color: #00c853; }
         .toggle-switch.on::after { transform: translateX(20px); }
 
-        /* 메시지 리스트 CSS */
-        .message-section { flex: 1; overflow-y: auto; padding: 10px 20px; }
-        .message-count { font-size: 14px; font-weight: 700; margin-bottom: 16px; margin-top: 10px;}
-        .message-item { display: flex; gap: 12px; margin-bottom: 20px; }
-        .avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
-        .message-content { flex: 1; }
-        .message-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .name { font-weight: 600; font-size: 15px; }
-        .date { font-size: 12px; color: #888; }
-        .text { font-size: 14px; color: #555; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-        .highlight-exact { color: #00c853; font-weight: bold; }
-        .highlight-ai { color: #7b61ff; font-weight: bold; }
+        /* 신규 추가: Ver 2 전용 (체크박스 & 카드 & 가짜 키보드) */
+        .list-header-v2 { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px 10px 20px; }
+        .ai-mode-toggle-v2 { display: flex; align-items: center; gap: 6px; cursor: pointer; user-select: none; }
+        .radio-circle-v2 { width: 18px; height: 18px; border-radius: 50%; border: 1.5px solid #ccc; display: flex; justify-content: center; align-items: center; transition: all 0.2s; }
+        .radio-circle-v2 svg { display: none; width: 10px; height: 10px; fill: white; }
+        .ai-mode-text-v2 { font-size: 14px; font-weight: 600; color: #a0a0a0; transition: color 0.2s; }
+        .ai-mode-toggle-v2.active .radio-circle-v2 { background-color: #9c27b0; border-color: #9c27b0; }
+        .ai-mode-toggle-v2.active .radio-circle-v2 svg { display: block; }
+        .ai-mode-toggle-v2.active .ai-mode-text-v2 { color: #9c27b0; }
+        
+        .expansion-card-v2 { display: none; background-color: #fbf8ff; border-radius: 12px; padding: 14px 16px; margin: 0 20px 16px 20px; }
+        .card-title-row { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; }
+        .info-icon { width: 16px; height: 16px; border: 1.5px solid #9c27b0; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; color: #9c27b0; }
+        .card-text { font-size: 13px; font-weight: 600; color: #555; }
+        .card-text strong { color: #333; }
+        .card-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+        
+        .mock-keyboard { background-color: #d1d4d9; padding: 10px 6px 30px 6px; display: flex; flex-direction: column; gap: 8px; }
+        .key-row { display: flex; justify-content: center; gap: 6px; }
+        .key { background-color: #fff; border-radius: 6px; height: 42px; display: flex; justify-content: center; align-items: center; font-size: 18px; font-weight: 500; box-shadow: 0 1px 1px rgba(0,0,0,0.2); }
+        .key.char { flex: 1; max-width: 34px; }
+        .key.special { padding: 0 14px; background-color: #b4b8bf; font-size: 14px; }
+        .key.space { flex: 3; max-width: 180px; }
 
-        /* =========================================
-           3. 개별 프로토타입 특화 CSS
-        ========================================= */
-        /* Ver 3. 탭 & 인풋칩 전용 */
+        /* Ver 3 전용 (인풋 칩스크롤) */
         .search-icon { font-size: 16px; margin-right: 8px; color: #555; flex-shrink: 0; }
         .base-search-text { font-size: 16px; color: #000; flex-shrink: 0; }
         .search-chips { display: none; align-items: center; gap: 6px; margin-left: 10px; padding-right: 16px; overflow-x: auto; white-space: nowrap; height: 100%; scrollbar-width: none; cursor: grab; user-select: none; -webkit-user-select: none; }
         .search-chips:active { cursor: grabbing; }
         .chip, .active-chip, .card-chip { background-color: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 14px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+        .card-chip { background-color: #ffffff; border: 1px solid #ebd4ff; color: #9c27b0; } /* 카드용 칩 색상 덮어쓰기 */
         .tab.ai-mode { border-bottom: none; }
-        .tab.ai-mode.active { color: #7b61ff; }
-        .tab.ai-mode.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background-color: #7b61ff; }
+        .tab.ai-mode.active { color: #9c27b0; }
+        .tab.ai-mode.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background-color: #9c27b0; }
         
-        /* Ver 4. Empty State 전용 */
+        /* Ver 4 전용 (Empty State) */
         .active-chip-container { display: none; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; }
         .active-chip-container::-webkit-scrollbar { display: none; }
         .empty-state-section { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
         .empty-text { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 30px; }
         .suggestion-card { width: 100%; background-color: #ffffff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f0f0f0; }
-        .card-header { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #7b61ff; margin-bottom: 12px; }
-        .info-icon { width: 16px; height: 16px; border: 1.5px solid #7b61ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; }
-        .card-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-        .card-chip { background-color: #fbf8ff; border: 1px solid #ebd4ff; color: #9c27b0; padding: 6px 12px; }
         .ai-search-btn { width: 100%; background-color: #5b3cff; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
         .ai-search-btn:active { opacity: 0.8; }
     </style>
@@ -99,11 +117,16 @@
 
     <div class="sidebar">
         <h1>AI 검색 프로토타입</h1>
-        <p>팀 리뷰를 위해 제작된 3가지 베리에이션입니다. 하나의 파일 안에서 바로 작동합니다.</p>
+        <p>팀 리뷰를 위해 제작된 4가지 베리에이션입니다. 하나의 파일 안에서 바로 작동합니다.</p>
         
         <button class="nav-btn active" onclick="switchView('view-v1', this)">
             <span class="title">Ver 1. 기본 토글형</span>
             <span class="desc">가장 심플한 형태의 ON/OFF 스위치</span>
+        </button>
+
+        <button class="nav-btn" onclick="switchView('view-v2', this)">
+            <span class="title">Ver 2. 체크박스 & 안내 카드</span>
+            <span class="desc">우측 상단 체크박스 및 확장 키워드 카드</span>
         </button>
         
         <button class="nav-btn" onclick="switchView('view-v3', this)">
@@ -129,8 +152,56 @@
                     <div><span class="ai-text">AI 유사어 검색</span><span class="ai-subtext">동의어, 관련어까지 함께 검색합니다</span></div>
                     <div class="toggle-switch" id="toggleBtn-v1"></div>
                 </div>
-
                 <div class="message-section"><div class="message-count">Messages <span id="msgCount-v1">0</span></div><div id="messageList-v1"></div></div>
+            </div>
+        </div>
+
+        <div id="view-v2" class="proto-view">
+            <div class="phone-container">
+                <div class="status-bar"><span>9:41</span><span>LTE 🔋</span></div>
+                
+                <div class="search-container">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span><input type="text" value="Starbucks" readonly>
+                    </div>
+                    <div class="close-icon">✕</div>
+                </div>
+
+                <div class="tabs">
+                    <div class="tab active">All</div><div class="tab">Message</div><div class="tab">Member</div>
+                </div>
+
+                <div class="list-header-v2">
+                    <div class="message-count-v2">Messages <span id="msgCount-v2">3</span></div>
+                    <div class="ai-mode-toggle-v2" id="aiModeToggle-v2">
+                        <div class="radio-circle-v2">
+                            <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                        </div>
+                        <span class="ai-mode-text-v2">AI mode</span>
+                    </div>
+                </div>
+
+                <div class="expansion-card-v2" id="expansionCard-v2">
+                    <div class="card-title-row">
+                        <div class="info-icon">i</div>
+                        <div class="card-text"><strong>Starbucks</strong>의 유사어로 검색 범위를 확장했어요.</div>
+                    </div>
+                    <div class="card-chips">
+                        <div class="card-chip">スターバックス</div><div class="card-chip">スタバックス</div><div class="card-chip">スタバ</div>
+                        <div class="card-chip">coffee shop</div><div class="card-chip">cafe</div>
+                    </div>
+                </div>
+
+                <div class="message-section" style="padding: 0 20px;">
+                    <div id="messageList-v2"></div>
+                </div>
+
+                <div class="mock-keyboard">
+                    <div class="key-row"><div class="key char">q</div><div class="key char">w</div><div class="key char">e</div><div class="key char">r</div><div class="key char">t</div><div class="key char">y</div><div class="key char">u</div><div class="key char">i</div><div class="key char">o</div><div class="key char">p</div></div>
+                    <div class="key-row"><div class="key char">a</div><div class="key char">s</div><div class="key char">d</div><div class="key char">f</div><div class="key char">g</div><div class="key char">h</div><div class="key char">j</div><div class="key char">k</div><div class="key char">l</div></div>
+                    <div class="key-row"><div class="key special">⇧</div><div class="key char">z</div><div class="key char">x</div><div class="key char">c</div><div class="key char">v</div><div class="key char">b</div><div class="key char">n</div><div class="key char">m</div><div class="key special">⌫</div></div>
+                    <div class="key-row"><div class="key special">123</div><div class="key special">☺</div><div class="key space">space</div><div class="key special" style="background-color:#1a73e8; color:white;">search</div></div>
+                </div>
             </div>
         </div>
 
@@ -193,7 +264,7 @@
     </div>
 
     <script>
-        // --- 0. 사이드바 버튼 클릭 시 화면 전환 함수 ---
+        // --- 0. 사이드바 버튼 클릭 시 화면 전환 ---
         function switchView(viewId, btnElement) {
             document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
             btnElement.classList.add('active');
@@ -209,6 +280,19 @@
             { name: "Keem", date: "12/22/25", color: "#a88e73", text: "Heyyyyy Can you check if there's a スタバックス near here?" }
         ];
 
+        // 하이라이트 색상을 위한 정규식 (초록/보라 처리)
+        function formatText(text, isAiOn, exactWord, aiSynonyms) {
+            let formattedText = text;
+            if (isAiOn) {
+                const regex = new RegExp(`(${aiSynonyms.join('|')})`, 'gi');
+                formattedText = text.replace(regex, `<span class="highlight-ai">$1</span>`);
+            } else {
+                const regex = new RegExp(`(${exactWord})`, 'gi');
+                formattedText = text.replace(regex, `<span class="highlight-exact">$1</span>`);
+            }
+            return formattedText;
+        }
+
         // --- 1. [Ver 1] 로직 ---
         (function() {
             let isAiOn = false;
@@ -217,13 +301,13 @@
             function render() {
                 const list = document.getElementById('messageList-v1'); list.innerHTML = ''; let count = 0;
                 baseMessages.forEach(msg => {
-                    let show = false, fText = msg.text;
+                    let show = false;
                     if (isAiOn) {
-                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) { show = true; fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`); }
+                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) show = true;
                     } else {
-                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) { show = true; fText = msg.text.replace(new RegExp(`(${exactWord})`, 'gi'), `<span class="highlight-exact">$1</span>`); }
+                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) show = true;
                     }
-                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`; }
+                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${formatText(msg.text, isAiOn, exactWord, aiSynonyms)}</div></div></div>`; }
                 });
                 document.getElementById('msgCount-v1').innerText = count;
                 document.getElementById('aiToggleBar-v1').style.backgroundColor = isAiOn ? '#faf5ff' : '#ffffff';
@@ -235,33 +319,82 @@
             render();
         })();
 
-        // --- 2. [Ver 3] 로직 ---
+        // --- 2. 🌟 [Ver 2] 신규 로직 (체크박스 & 안내 카드) ---
+        (function() {
+            let isAiOn = false;
+            const exactWord = "Starbucks", aiSynonyms = ["Starbucks", "スターバックス", "スタバックス", "スタバ", "coffee shop", "cafe"];
+            
+            function render() {
+                const toggleBtn = document.getElementById('aiModeToggle-v2');
+                const expansionCard = document.getElementById('expansionCard-v2');
+                const listContainer = document.getElementById('messageList-v2');
+                const countContainer = document.getElementById('msgCount-v2');
+
+                if (isAiOn) {
+                    toggleBtn.classList.add('active');
+                    expansionCard.style.display = 'block';
+                } else {
+                    toggleBtn.classList.remove('active');
+                    expansionCard.style.display = 'none';
+                }
+
+                listContainer.innerHTML = '';
+                let visibleCount = 0;
+
+                baseMessages.forEach(msg => {
+                    let show = false;
+                    if (isAiOn) {
+                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) show = true;
+                    } else {
+                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) show = true;
+                    }
+                    
+                    if (show) {
+                        visibleCount++;
+                        listContainer.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${formatText(msg.text, isAiOn, exactWord, aiSynonyms)}</div></div></div>`;
+                    }
+                });
+
+                if (isAiOn) {
+                    countContainer.innerText = "31"; // AI 모드일 때 가상 수치
+                } else {
+                    countContainer.innerText = visibleCount;
+                }
+            }
+
+            document.getElementById('aiModeToggle-v2').addEventListener('click', function() {
+                isAiOn = !isAiOn; render();
+            });
+            render();
+        })();
+
+        // --- 3. [Ver 3] 로직 ---
         (function() {
             let currentMode = 'all';
             const v3Messages = [...baseMessages, { name: "Singles (3)", date: "12/22/25", color: "#6c8c9e", text: "Ordering through the スタバ app saves so much time." }];
             const exactWord = "Starbucks", aiSynonyms = ["Starbucks", "スターバックス", "スタバックス", "スタバ", "coffee shop", "별다방", "카페"];
             
             function render() {
+                const isAiOn = currentMode === 'ai';
                 const list = document.getElementById('messageList-v3'); list.innerHTML = ''; let count = 0;
                 v3Messages.forEach(msg => {
-                    let show = false, fText = msg.text;
-                    if (currentMode === 'ai') {
-                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) { show = true; fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`); }
+                    let show = false;
+                    if (isAiOn) {
+                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) show = true;
                     } else {
-                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) { show = true; fText = msg.text.replace(new RegExp(`(${exactWord})`, 'gi'), `<span class="highlight-exact">$1</span>`); }
+                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) show = true;
                     }
-                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`; }
+                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${formatText(msg.text, isAiOn, exactWord, aiSynonyms)}</div></div></div>`; }
                 });
                 document.getElementById('msgCount-v3').innerText = count;
                 
-                if (currentMode === 'ai') { document.getElementById('tabAi-v3').classList.add('active'); document.getElementById('tabAll-v3').classList.remove('active'); document.getElementById('searchChips-v3').style.display = 'flex'; } 
+                if (isAiOn) { document.getElementById('tabAi-v3').classList.add('active'); document.getElementById('tabAll-v3').classList.remove('active'); document.getElementById('searchChips-v3').style.display = 'flex'; } 
                 else { document.getElementById('tabAll-v3').classList.add('active'); document.getElementById('tabAi-v3').classList.remove('active'); document.getElementById('searchChips-v3').style.display = 'none'; }
             }
             document.getElementById('tabAi-v3').addEventListener('click', () => { currentMode = 'ai'; render(); });
             document.getElementById('tabAll-v3').addEventListener('click', () => { currentMode = 'all'; render(); });
             render();
 
-            // 칩 마우스 스크롤
             const chips = document.getElementById('searchChips-v3'); let isDown = false, startX, scrollLeft;
             chips.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - chips.offsetLeft; scrollLeft = chips.scrollLeft; });
             chips.addEventListener('mouseleave', () => { isDown = false; });
@@ -269,7 +402,7 @@
             chips.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); chips.scrollLeft = scrollLeft - ((e.pageX - chips.offsetLeft) - startX) * 1.5; });
         })();
 
-        // --- 3. [Ver 4] 로직 ---
+        // --- 4. [Ver 4] 로직 ---
         (function() {
             let isAiOn = false;
             const aiSynonyms = ["Starbucks", "スターバックス", "スタバックス", "coffee shop"];
@@ -290,7 +423,8 @@
                     
                     const list = document.getElementById('messageList-v4'); list.innerHTML = '';
                     baseMessages.forEach(msg => {
-                        const fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`);
+                        const regex = new RegExp(`(${aiSynonyms.join('|')})`, 'gi');
+                        const fText = msg.text.replace(regex, `<span class="highlight-ai">$1</span>`);
                         list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`;
                     });
                 }
