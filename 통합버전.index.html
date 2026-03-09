@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 검색 UX 프로토타입 리뷰</title>
+    <style>
+        /* =========================================
+           1. 뷰어 전체 공통 레이아웃
+        ========================================= */
+        body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; display: flex; height: 100vh; background-color: #f5f5f7; overflow: hidden; }
+        
+        /* 사이드바 메뉴 */
+        .sidebar { width: 320px; background-color: #ffffff; border-right: 1px solid #e5e5ea; padding: 30px 20px; display: flex; flex-direction: column; z-index: 10; box-shadow: 2px 0 10px rgba(0,0,0,0.05); }
+        .sidebar h1 { font-size: 20px; color: #1d1d1f; margin-bottom: 8px; }
+        .sidebar p { font-size: 14px; color: #86868b; margin-bottom: 30px; line-height: 1.5; }
+        
+        .nav-btn { background-color: #f5f5f7; border: 1px solid #e5e5ea; padding: 16px; border-radius: 12px; margin-bottom: 12px; cursor: pointer; text-align: left; transition: all 0.2s ease; display: flex; flex-direction: column; gap: 4px; }
+        .nav-btn:hover { border-color: #0071e3; background-color: #fbfbfe; }
+        .nav-btn.active { background-color: #e8f0fe; border-color: #1a73e8; }
+        .nav-btn .title { font-size: 15px; font-weight: 700; color: #1d1d1f; }
+        .nav-btn.active .title { color: #1a73e8; }
+        .nav-btn .desc { font-size: 13px; color: #86868b; }
+        
+        /* 메인 화면 영역 */
+        .viewer-container { flex: 1; display: flex; justify-content: center; align-items: center; background-color: #e0e0e0; position: relative; }
+        
+        /* 화면 전환용 클래스 */
+        .proto-view { display: none; }
+        .proto-view.active { display: flex; }
+
+        /* =========================================
+           2. 프로토타입 공통 CSS (폰 화면)
+        ========================================= */
+        .phone-container { width: 390px; height: 844px; background-color: #ffffff; border-radius: 40px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); overflow: hidden; position: relative; border: 8px solid #333; display: flex; flex-direction: column; }
+        .status-bar { display: flex; justify-content: space-between; padding: 14px 24px; font-weight: 600; font-size: 15px; }
+        .search-container { padding: 10px 20px; display: flex; align-items: center; gap: 10px; }
+        .search-box { flex: 1; background-color: #f2f2f2; padding: 10px 16px; border-radius: 12px; display: flex; align-items: center; font-size: 16px; height: 44px; overflow: hidden; }
+        .search-box input { border: none; background: transparent; outline: none; width: 100%; font-size: 16px; margin-left: 8px; color: #000; }
+        .close-icon { font-size: 20px; color: #333; cursor: pointer; flex-shrink: 0; }
+        
+        .tabs { display: flex; padding: 0 20px; margin-top: 10px; border-bottom: 1px solid #eee; overflow-x: auto; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
+        .tab { padding: 12px 16px; font-size: 15px; font-weight: 600; color: #a0a0a0; cursor: pointer; white-space: nowrap; position: relative; }
+        .tab.active { color: #000; border-bottom: 2px solid #000; }
+
+        /* 토글 관련 CSS */
+        .ai-toggle-bar, .ai-toggle-wrapper { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; transition: background-color 0.3s ease; }
+        .ai-toggle-wrapper { flex-direction: column; align-items: stretch; border-bottom: 1px solid transparent; }
+        .ai-toggle-header { display: flex; justify-content: space-between; align-items: center; }
+        .ai-text { font-size: 14px; font-weight: 700; color: #333; }
+        .ai-subtext { font-size: 12px; font-weight: 400; color: #888; margin-left: 6px; }
+        .toggle-switch { width: 44px; height: 24px; background-color: #ccc; border-radius: 20px; position: relative; cursor: pointer; transition: background-color 0.3s; flex-shrink: 0; }
+        .toggle-switch::after { content: ''; position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; background-color: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .toggle-switch.on { background-color: #00c853; }
+        .toggle-switch.on::after { transform: translateX(20px); }
+
+        /* 메시지 리스트 CSS */
+        .message-section { flex: 1; overflow-y: auto; padding: 10px 20px; }
+        .message-count { font-size: 14px; font-weight: 700; margin-bottom: 16px; margin-top: 10px;}
+        .message-item { display: flex; gap: 12px; margin-bottom: 20px; }
+        .avatar { width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0; }
+        .message-content { flex: 1; }
+        .message-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .name { font-weight: 600; font-size: 15px; }
+        .date { font-size: 12px; color: #888; }
+        .text { font-size: 14px; color: #555; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .highlight-exact { color: #00c853; font-weight: bold; }
+        .highlight-ai { color: #7b61ff; font-weight: bold; }
+
+        /* =========================================
+           3. 개별 프로토타입 특화 CSS
+        ========================================= */
+        /* Ver 3. 탭 & 인풋칩 전용 */
+        .search-icon { font-size: 16px; margin-right: 8px; color: #555; flex-shrink: 0; }
+        .base-search-text { font-size: 16px; color: #000; flex-shrink: 0; }
+        .search-chips { display: none; align-items: center; gap: 6px; margin-left: 10px; padding-right: 16px; overflow-x: auto; white-space: nowrap; height: 100%; scrollbar-width: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+        .search-chips:active { cursor: grabbing; }
+        .chip, .active-chip, .card-chip { background-color: #e8f0fe; color: #1a73e8; padding: 4px 10px; border-radius: 14px; font-size: 13px; font-weight: 500; flex-shrink: 0; }
+        .tab.ai-mode { border-bottom: none; }
+        .tab.ai-mode.active { color: #7b61ff; }
+        .tab.ai-mode.active::after { content: ''; position: absolute; bottom: -1px; left: 0; right: 0; height: 2px; background-color: #7b61ff; }
+        
+        /* Ver 4. Empty State 전용 */
+        .active-chip-container { display: none; gap: 8px; margin-top: 12px; overflow-x: auto; padding-bottom: 2px; }
+        .active-chip-container::-webkit-scrollbar { display: none; }
+        .empty-state-section { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 40px 20px; }
+        .empty-text { font-size: 15px; font-weight: 600; color: #333; margin-bottom: 30px; }
+        .suggestion-card { width: 100%; background-color: #ffffff; border-radius: 16px; padding: 20px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid #f0f0f0; }
+        .card-header { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: #7b61ff; margin-bottom: 12px; }
+        .info-icon { width: 16px; height: 16px; border: 1.5px solid #7b61ff; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 10px; font-weight: bold; }
+        .card-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+        .card-chip { background-color: #fbf8ff; border: 1px solid #ebd4ff; color: #9c27b0; padding: 6px 12px; }
+        .ai-search-btn { width: 100%; background-color: #5b3cff; color: #ffffff; border: none; padding: 14px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity 0.2s; }
+        .ai-search-btn:active { opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+    <div class="sidebar">
+        <h1>AI 검색 프로토타입</h1>
+        <p>팀 리뷰를 위해 제작된 3가지 베리에이션입니다. 하나의 파일 안에서 바로 작동합니다.</p>
+        
+        <button class="nav-btn active" onclick="switchView('view-v1', this)">
+            <span class="title">Ver 1. 기본 토글형</span>
+            <span class="desc">가장 심플한 형태의 ON/OFF 스위치</span>
+        </button>
+        
+        <button class="nav-btn" onclick="switchView('view-v3', this)">
+            <span class="title">Ver 3. 탭 & 인풋 칩스크롤</span>
+            <span class="desc">탭 모드 전환 및 검색창 내부 칩 배치</span>
+        </button>
+
+        <button class="nav-btn" onclick="switchView('view-v4', this)">
+            <span class="title">Ver 4. Empty State 유도형</span>
+            <span class="desc">검색 결과가 없을 때 추천 카드로 유도</span>
+        </button>
+    </div>
+
+    <div class="viewer-container">
+        
+        <div id="view-v1" class="proto-view active">
+            <div class="phone-container">
+                <div class="status-bar"><span>9:41</span><span>LTE 🔋</span></div>
+                <div class="search-container"><div class="search-box"><span>🔍</span><input type="text" value="Starbucks" readonly></div><div class="close-icon">✕</div></div>
+                <div class="tabs"><div class="tab active">All</div><div class="tab">Message</div><div class="tab">Member</div></div>
+                
+                <div class="ai-toggle-bar" id="aiToggleBar-v1">
+                    <div><span class="ai-text">AI 유사어 검색</span><span class="ai-subtext">동의어, 관련어까지 함께 검색합니다</span></div>
+                    <div class="toggle-switch" id="toggleBtn-v1"></div>
+                </div>
+
+                <div class="message-section"><div class="message-count">Messages <span id="msgCount-v1">0</span></div><div id="messageList-v1"></div></div>
+            </div>
+        </div>
+
+        <div id="view-v3" class="proto-view">
+            <div class="phone-container">
+                <div class="status-bar"><span>9:41</span><span>LTE 🔋</span></div>
+                <div class="search-container">
+                    <div class="search-box">
+                        <span class="search-icon">🔍</span><span class="base-search-text">Starbucks</span>
+                        <div class="search-chips" id="searchChips-v3">
+                            <span class="chip">スターバックス</span><span class="chip">スタバックス</span><span class="chip">スタバ</span>
+                            <span class="chip">coffee shop</span><span class="chip">별다방</span><span class="chip">카페</span>
+                        </div>
+                    </div>
+                    <div class="close-icon">✕</div>
+                </div>
+                <div class="tabs" style="padding: 0 10px;">
+                    <div class="tab ai-mode" id="tabAi-v3">AI mode</div>
+                    <div class="tab active" id="tabAll-v3">All</div>
+                    <div class="tab">Message</div><div class="tab">Member</div>
+                </div>
+                <div class="message-section"><div class="message-count">Messages <span id="msgCount-v3">0</span></div><div id="messageList-v3"></div></div>
+            </div>
+        </div>
+
+        <div id="view-v4" class="proto-view">
+            <div class="phone-container">
+                <div class="status-bar"><span>9:41</span><span>LTE 🔋</span></div>
+                <div class="search-container"><div class="search-box"><span>🔍</span><input type="text" value="Starbucks" readonly></div><div class="close-icon">✕</div></div>
+                <div class="tabs"><div class="tab active">All</div><div class="tab">Message</div><div class="tab">Member</div></div>
+                
+                <div class="ai-toggle-wrapper" id="aiToggleWrapper-v4">
+                    <div class="ai-toggle-header">
+                        <div><span class="ai-text">AI 유사어 검색</span><span class="ai-subtext">동의어, 관련어까지 함께 검색합니다</span></div>
+                        <div class="toggle-switch" id="toggleBtn-v4"></div>
+                    </div>
+                    <div class="active-chip-container" id="activeChipContainer-v4">
+                        <div class="active-chip">スターバックス</div><div class="active-chip">スタバックス</div><div class="active-chip">coffee shop</div>
+                    </div>
+                </div>
+
+                <div class="empty-state-section" id="emptyStateSection-v4">
+                    <div class="empty-text">검색 결과 없음</div>
+                    <div class="suggestion-card">
+                        <div class="card-header"><div class="info-icon">i</div><span><strong>Starbucks</strong>의 유사어로 검색 범위를 확장할까요?</span></div>
+                        <div class="card-chips">
+                            <div class="card-chip">スターバックス</div><div class="card-chip">スタバックス</div><div class="card-chip">スタバ</div><div class="card-chip">coffee shop</div><div class="card-chip">cafe</div>
+                        </div>
+                        <button class="ai-search-btn" id="aiSearchBtn-v4">AI 유사어로 검색하기 ›</button>
+                    </div>
+                </div>
+
+                <div class="message-section" id="messageSection-v4" style="display:none;">
+                    <div class="message-count">Messages <span id="msgCount-v4">3</span></div>
+                    <div id="messageList-v4"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // --- 0. 사이드바 버튼 클릭 시 화면 전환 함수 ---
+        function switchView(viewId, btnElement) {
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+            
+            document.querySelectorAll('.proto-view').forEach(view => view.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        // 공통 더미 데이터
+        const baseMessages = [
+            { name: "Aimee", date: "12/22/25", color: "#5c7d9f", text: "I tried the new drink at Starbucks yesterday and it was actually really..." },
+            { name: "Shota Saito", date: "12/22/25", color: "#111111", text: "Should we go to スターバックス after lunch? Can you check if there's a..." },
+            { name: "Keem", date: "12/22/25", color: "#a88e73", text: "Heyyyyy Can you check if there's a スタバックス near here?" }
+        ];
+
+        // --- 1. [Ver 1] 로직 ---
+        (function() {
+            let isAiOn = false;
+            const exactWord = "Starbucks", aiSynonyms = ["Starbucks", "스타벅스", "スターバックス"];
+            
+            function render() {
+                const list = document.getElementById('messageList-v1'); list.innerHTML = ''; let count = 0;
+                baseMessages.forEach(msg => {
+                    let show = false, fText = msg.text;
+                    if (isAiOn) {
+                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) { show = true; fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`); }
+                    } else {
+                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) { show = true; fText = msg.text.replace(new RegExp(`(${exactWord})`, 'gi'), `<span class="highlight-exact">$1</span>`); }
+                    }
+                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`; }
+                });
+                document.getElementById('msgCount-v1').innerText = count;
+                document.getElementById('aiToggleBar-v1').style.backgroundColor = isAiOn ? '#faf5ff' : '#ffffff';
+            }
+            
+            document.getElementById('toggleBtn-v1').addEventListener('click', function() {
+                isAiOn = !isAiOn; if(isAiOn) this.classList.add('on'); else this.classList.remove('on'); render();
+            });
+            render();
+        })();
+
+        // --- 2. [Ver 3] 로직 ---
+        (function() {
+            let currentMode = 'all';
+            const v3Messages = [...baseMessages, { name: "Singles (3)", date: "12/22/25", color: "#6c8c9e", text: "Ordering through the スタバ app saves so much time." }];
+            const exactWord = "Starbucks", aiSynonyms = ["Starbucks", "スターバックス", "スタバックス", "スタバ", "coffee shop", "별다방", "카페"];
+            
+            function render() {
+                const list = document.getElementById('messageList-v3'); list.innerHTML = ''; let count = 0;
+                v3Messages.forEach(msg => {
+                    let show = false, fText = msg.text;
+                    if (currentMode === 'ai') {
+                        if (aiSynonyms.some(s => msg.text.toLowerCase().includes(s.toLowerCase()))) { show = true; fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`); }
+                    } else {
+                        if (msg.text.toLowerCase().includes(exactWord.toLowerCase())) { show = true; fText = msg.text.replace(new RegExp(`(${exactWord})`, 'gi'), `<span class="highlight-exact">$1</span>`); }
+                    }
+                    if (show) { count++; list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`; }
+                });
+                document.getElementById('msgCount-v3').innerText = count;
+                
+                if (currentMode === 'ai') { document.getElementById('tabAi-v3').classList.add('active'); document.getElementById('tabAll-v3').classList.remove('active'); document.getElementById('searchChips-v3').style.display = 'flex'; } 
+                else { document.getElementById('tabAll-v3').classList.add('active'); document.getElementById('tabAi-v3').classList.remove('active'); document.getElementById('searchChips-v3').style.display = 'none'; }
+            }
+            document.getElementById('tabAi-v3').addEventListener('click', () => { currentMode = 'ai'; render(); });
+            document.getElementById('tabAll-v3').addEventListener('click', () => { currentMode = 'all'; render(); });
+            render();
+
+            // 칩 마우스 스크롤
+            const chips = document.getElementById('searchChips-v3'); let isDown = false, startX, scrollLeft;
+            chips.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - chips.offsetLeft; scrollLeft = chips.scrollLeft; });
+            chips.addEventListener('mouseleave', () => { isDown = false; });
+            chips.addEventListener('mouseup', () => { isDown = false; });
+            chips.addEventListener('mousemove', (e) => { if (!isDown) return; e.preventDefault(); chips.scrollLeft = scrollLeft - ((e.pageX - chips.offsetLeft) - startX) * 1.5; });
+        })();
+
+        // --- 3. [Ver 4] 로직 ---
+        (function() {
+            let isAiOn = false;
+            const aiSynonyms = ["Starbucks", "スターバックス", "スタバックス", "coffee shop"];
+            
+            function render() {
+                if (!isAiOn) {
+                    document.getElementById('emptyStateSection-v4').style.display = 'flex';
+                    document.getElementById('messageSection-v4').style.display = 'none';
+                    document.getElementById('toggleBtn-v4').classList.remove('on');
+                    document.getElementById('activeChipContainer-v4').style.display = 'none';
+                    document.getElementById('aiToggleWrapper-v4').style.backgroundColor = '#ffffff';
+                } else {
+                    document.getElementById('emptyStateSection-v4').style.display = 'none';
+                    document.getElementById('messageSection-v4').style.display = 'block';
+                    document.getElementById('toggleBtn-v4').classList.add('on');
+                    document.getElementById('activeChipContainer-v4').style.display = 'flex';
+                    document.getElementById('aiToggleWrapper-v4').style.backgroundColor = '#faf5ff';
+                    
+                    const list = document.getElementById('messageList-v4'); list.innerHTML = '';
+                    baseMessages.forEach(msg => {
+                        const fText = msg.text.replace(new RegExp(`(${aiSynonyms.join('|')})`, 'gi'), `<span class="highlight-ai">$1</span>`);
+                        list.innerHTML += `<div class="message-item"><div class="avatar" style="background-color: ${msg.color};"></div><div class="message-content"><div class="message-header"><span class="name">${msg.name}</span><span class="date">${msg.date}</span></div><div class="text">${fText}</div></div></div>`;
+                    });
+                }
+            }
+            document.getElementById('aiSearchBtn-v4').addEventListener('click', () => { isAiOn = true; render(); });
+            document.getElementById('toggleBtn-v4').addEventListener('click', () => { isAiOn = !isAiOn; render(); });
+            render();
+        })();
+    </script>
+</body>
+</html>
